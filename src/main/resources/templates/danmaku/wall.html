@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹幕墙 - 文档管理系统</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #000f1a, #001a2b);
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+        
+        .danmaku-wall-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(10, 132, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 80% 40%, rgba(0, 199, 190, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 40% 70%, rgba(94, 92, 230, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 90%, rgba(10, 132, 255, 0.05) 0%, transparent 20%);
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(0, 20, 40, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(10, 132, 255, 0.3);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4ef2f8;
+            text-shadow: 0 0 10px rgba(78, 242, 248, 0.5);
+            display: flex;
+            align-items: center;
+        }
+        
+        .title span {
+            margin-left: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .controls button {
+            background: rgba(10, 132, 255, 0.2);
+            border: 1px solid rgba(78, 242, 248, 0.3);
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .controls button:hover {
+            background: rgba(10, 132, 255, 0.4);
+            box-shadow: 0 0 15px rgba(78, 242, 248, 0.4);
+        }
+        
+        .danmaku-area {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding-top: 70px;
+            box-sizing: border-box;
+        }
+        
+        .danmaku-item {
+            position: absolute;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 1rem;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(78, 242, 248, 0.3);
+            animation-name: danmaku-move;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+            z-index: 10;
+        }
+        
+        .danmaku-item.type-1 {
+            background: rgba(10, 132, 255, 0.2);
+            border: 1px solid rgba(10, 132, 255, 0.5);
+            box-shadow: 0 0 15px rgba(10, 132, 255, 0.3);
+        }
+        
+        .danmaku-item.type-2 {
+            background: rgba(0, 199, 190, 0.2);
+            border: 1px solid rgba(0, 199, 190, 0.5);
+            box-shadow: 0 0 15px rgba(0, 199, 190, 0.3);
+        }
+        
+        .danmaku-item.type-3 {
+            background: rgba(94, 92, 230, 0.2);
+            border: 1px solid rgba(94, 92, 230, 0.5);
+            box-shadow: 0 0 15px rgba(94, 92, 230, 0.3);
+        }
+        
+        .username {
+            font-weight: bold;
+            margin-right: 5px;
+            color: #4ef2f8;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(0, 20, 40, 0.7);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(10, 132, 255, 0.3);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .input-container {
+            display: flex;
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .danmaku-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(78, 242, 248, 0.3);
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+        }
+        
+        .danmaku-input:focus {
+            border-color: rgba(78, 242, 248, 0.8);
+            box-shadow: 0 0 15px rgba(78, 242, 248, 0.3);
+        }
+        
+        .danmaku-send {
+            background: linear-gradient(90deg, #0a84ff, #00c7be);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 25px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .danmaku-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(10, 132, 255, 0.5);
+        }
+        
+        .grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(10, 132, 255, 0.05) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(10, 132, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+        }
+        
+        .back-to-dashboard {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(10, 132, 255, 0.2);
+            border: 1px solid rgba(78, 242, 248, 0.3);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            z-index: 100;
+        }
+        
+        .back-to-dashboard:hover {
+            background: rgba(10, 132, 255, 0.4);
+            box-shadow: 0 0 15px rgba(78, 242, 248, 0.4);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(78, 242, 248, 0.3);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes danmaku-move {
+            from { transform: translateX(100%); }
+            to { transform: translateX(-100%); }
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="danmaku-wall-container">
+        <div class="grid"></div>
+        <div class="particles" id="particles"></div>
+        
+        <div class="header">
+            <div class="title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H18L22 22V4C22 2.9 21.1 2 20 2ZM20 17.17L18.83 16H4V4H20V17.17Z" fill="#4ef2f8"/>
+                    <path d="M6 12H18V14H6V12ZM6 9H18V11H6V9ZM6 6H18V8H6V6Z" fill="#4ef2f8"/>
+                </svg>
+                <span>高科技弹幕墙</span>
+            </div>
+            <div class="controls">
+                <button id="pause-button">暂停</button>
+                <button id="speed-button">加速</button>
+                <button id="fullscreen-button">全屏</button>
+            </div>
+        </div>
+        
+        <div class="danmaku-area" id="danmaku-area">
+            <!-- 弹幕将在这里动态生成 -->
+        </div>
+        
+        <div class="footer">
+            <div class="input-container">
+                <input type="text" class="danmaku-input" id="danmaku-input" placeholder="发送一条消息..." th:disabled="${user == null}">
+                <button class="danmaku-send" id="danmaku-send" th:disabled="${user == null}">发送</button>
+            </div>
+        </div>
+        
+        <a href="/dashboard" class="back-to-dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
+                <path d="M10 20V14H14V20H19V12H22L12 3L2 12H5V20H10Z" fill="#4ef2f8"/>
+            </svg>
+            返回控制面板
+        </a>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const danmakuArea = document.getElementById('danmaku-area');
+            const danmakuInput = document.getElementById('danmaku-input');
+            const danmakuSend = document.getElementById('danmaku-send');
+            const pauseButton = document.getElementById('pause-button');
+            const speedButton = document.getElementById('speed-button');
+            const fullscreenButton = document.getElementById('fullscreen-button');
+            const particlesContainer = document.getElementById('particles');
+            
+            let isPaused = false;
+            let baseSpeed = 15; // 基础速度（秒）
+            let speedMultiplier = 1; // 速度倍数
+            
+            // 创建背景粒子
+            function createParticles() {
+                particlesContainer.innerHTML = '';
+                const particleCount = 50;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // 随机大小
+                    const size = Math.random() * 4 + 1;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    
+                    // 随机位置
+                    const posX = Math.random() * 100;
+                    const posY = Math.random() * 100;
+                    particle.style.left = posX + '%';
+                    particle.style.top = posY + '%';
+                    
+                    // 随机透明度
+                    const opacity = Math.random() * 0.5 + 0.1;
+                    particle.style.opacity = opacity;
+                    
+                    // 随机动画
+                    const animationDuration = Math.random() * 10 + 5;
+                    particle.style.animation = `floating ${animationDuration}s ease-in-out infinite`;
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            
+            // 添加一条弹幕
+            function addDanmaku(data) {
+                const danmaku = document.createElement('div');
+                danmaku.className = 'danmaku-item type-' + data.colorType;
+                
+                // 如果有用户名，添加用户名
+                if (data.user && data.user.username) {
+                    const username = document.createElement('span');
+                    username.className = 'username';
+                    username.textContent = data.user.username + ': ';
+                    danmaku.appendChild(username);
+                }
+                
+                // 添加内容
+                const content = document.createTextNode(data.content);
+                danmaku.appendChild(content);
+                
+                // 计算随机的垂直位置
+                const top = Math.floor(Math.random() * (danmakuArea.offsetHeight - 50)) + 'px';
+                danmaku.style.top = top;
+                
+                // 设置动画持续时间
+                const baseDuration = baseSpeed / speedMultiplier;
+                const randomFactor = Math.random() * 5 + baseDuration;
+                danmaku.style.animationDuration = randomFactor + 's';
+                
+                // 如果暂停中，设置动画状态为暂停
+                if (isPaused) {
+                    danmaku.style.animationPlayState = 'paused';
+                }
+                
+                danmakuArea.appendChild(danmaku);
+                
+                // 动画结束后移除元素
+                danmaku.addEventListener('animationend', function() {
+                    if (danmaku.parentNode === danmakuArea) {
+                        danmakuArea.removeChild(danmaku);
+                    }
+                });
+            }
+            
+            // 加载弹幕数据
+            function loadDanmakus() {
+                fetch('/danmaku/api/list')
+                    .then(response => response.json())
+                    .then(data => {
+                        // 清空当前弹幕
+                        danmakuArea.innerHTML = '';
+                        
+                        // 随机显示获取到的弹幕
+                        const displayCount = Math.min(data.length, 20); // 最多显示20条
+                        const shuffled = [...data].sort(() => 0.5 - Math.random());
+                        
+                        for (let i = 0; i < displayCount; i++) {
+                            setTimeout(() => {
+                                addDanmaku(shuffled[i]);
+                            }, i * 500); // 每隔500ms添加一条
+                        }
+                        
+                        // 设置定时刷新，定期获取新弹幕
+                        setTimeout(loadDanmakus, 30000); // 30秒刷新一次
+                    })
+                    .catch(error => {
+                        console.error('加载弹幕失败:', error);
+                        // 失败后稍后重试
+                        setTimeout(loadDanmakus, 10000);
+                    });
+            }
+            
+            // 发送弹幕到服务器
+            function sendDanmaku() {
+                const text = danmakuInput.value.trim();
+                if (!text) return;
+                
+                const colorType = Math.floor(Math.random() * 3) + 1;
+                
+                fetch('/danmaku/api/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `content=${encodeURIComponent(text)}&colorType=${colorType}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('发送失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 添加到屏幕
+                    addDanmaku(data);
+                    danmakuInput.value = '';
+                })
+                .catch(error => {
+                    console.error('发送弹幕失败:', error);
+                    alert('发送失败，请稍后重试');
+                });
+            }
+            
+            // 发送按钮点击事件
+            danmakuSend.addEventListener('click', sendDanmaku);
+            
+            // 按Enter键发送弹幕
+            danmakuInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    sendDanmaku();
+                }
+            });
+            
+            // 暂停/继续按钮
+            pauseButton.addEventListener('click', function() {
+                isPaused = !isPaused;
+                
+                if (isPaused) {
+                    danmakuArea.querySelectorAll('.danmaku-item').forEach(item => {
+                        item.style.animationPlayState = 'paused';
+                    });
+                    pauseButton.textContent = '继续';
+                } else {
+                    danmakuArea.querySelectorAll('.danmaku-item').forEach(item => {
+                        item.style.animationPlayState = 'running';
+                    });
+                    pauseButton.textContent = '暂停';
+                }
+            });
+            
+            // 速度调整按钮
+            speedButton.addEventListener('click', function() {
+                if (speedMultiplier === 1) {
+                    speedMultiplier = 1.5;
+                    speedButton.textContent = '减速';
+                } else {
+                    speedMultiplier = 1;
+                    speedButton.textContent = '加速';
+                }
+                
+                // 调整现有弹幕的速度
+                danmakuArea.querySelectorAll('.danmaku-item').forEach(item => {
+                    const currentDuration = parseFloat(item.style.animationDuration);
+                    if (speedMultiplier === 1.5) {
+                        item.style.animationDuration = (currentDuration / 1.5) + 's';
+                    } else {
+                        item.style.animationDuration = (currentDuration * 1.5) + 's';
+                    }
+                });
+            });
+            
+            // 全屏按钮
+            fullscreenButton.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        alert(`全屏模式错误: ${err.message}`);
+                    });
+                    fullscreenButton.textContent = '退出全屏';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        fullscreenButton.textContent = '全屏';
+                    }
+                }
+            });
+            
+            // 监听全屏变化
+            document.addEventListener('fullscreenchange', function() {
+                if (document.fullscreenElement) {
+                    fullscreenButton.textContent = '退出全屏';
+                } else {
+                    fullscreenButton.textContent = '全屏';
+                }
+            });
+            
+            // 监听窗口大小变化，重新计算弹幕位置
+            window.addEventListener('resize', function() {
+                danmakuArea.querySelectorAll('.danmaku-item').forEach(item => {
+                    const top = Math.floor(Math.random() * (danmakuArea.offsetHeight - 50)) + 'px';
+                    item.style.top = top;
+                });
+            });
+            
+            // 初始化
+            createParticles();
+            loadDanmakus();
+        });
+    </script>
+</body>
+</html> 

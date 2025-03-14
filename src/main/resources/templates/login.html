@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 科幻管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="floating-particles"></div>
+        
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>博客管理系统</h1>
+                <p>登录您的账户以继续</p>
+            </div>
+            
+            <div th:if="${param.error}" class="alert alert-danger">
+                用户名或密码错误，请重试
+            </div>
+            
+            <div th:if="${param.logout}" class="alert alert-success">
+                您已成功退出登录
+            </div>
+            
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            
+            <form th:action="@{/login}" method="post" id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" class="form-control" required autofocus placeholder="输入您的用户名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" class="form-control" required placeholder="输入您的密码">
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </button>
+                </div>
+            </form>
+            
+            <div class="auth-footer">
+                <p>还没有账户? <a th:href="@{/register}">立即注册</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/script.js}"></script>
+</body>
+</html> 

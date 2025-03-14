@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${document.title} + ' - 文档管理系统'">文档标题 - 文档管理系统</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 文档分类标签样式 */
+        .document-category {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #2196F3;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        
+        .document-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .meta-item {
+            margin-right: 15px;
+            color: #666;
+        }
+        
+        /* 相关文档样式 */
+        .related-documents {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .related-documents h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .related-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .related-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .related-item h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .related-item a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        
+        .related-item a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 文档图片样式 */
+        .document-image {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid rgba(30, 140, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 120, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <h1>文档管理系统</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">主页</a></li>
+                    <li><a href="/login" th:if="${#authorization.expression('!isAuthenticated()')}">登录</a></li>
+                    <li><a href="/register" th:if="${#authorization.expression('!isAuthenticated()')}">注册</a></li>
+                    <li><a href="/dashboard" th:if="${#authorization.expression('isAuthenticated()')}">个人中心</a></li>
+                    <li><a href="/logout" th:if="${#authorization.expression('isAuthenticated()')}">退出</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="document-detail">
+            <div class="document-header">
+                <h1 th:text="${document.title}">文档标题</h1>
+                <div class="document-meta">
+                    <div th:if="${document.category != null}" class="document-category" th:text="${document.category.name}">文档分类</div>
+                    <div class="meta-item">发布时间：<span th:text="${#temporals.format(document.createdAt, 'yyyy-MM-dd HH:mm')}">2025-03-13 16:30</span></div>
+                    <div class="meta-item">作者：<span th:text="${document.author}">作者</span></div>
+                </div>
+            </div>
+            
+            <div class="document-content">
+                <p th:text="${document.content}">文档内容...</p>
+                <img th:if="${document.imagePath != null}" th:src="${document.imagePath}" alt="文档图片" class="document-image">
+            </div>
+            
+            <div class="document-actions">
+                <a href="/" class="btn btn-secondary">返回首页</a>
+                <a th:if="${document.category != null}" th:href="@{/(categoryId=${document.category.id})}" class="btn btn-info">查看同分类文档</a>
+            </div>
+        </article>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 文档管理系统. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="/js/script.js"></script>
+</body>
+</html> 

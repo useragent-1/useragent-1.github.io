@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档管理系统 - 主页</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 分类导航样式 - 科技风格 */
+        .category-nav {
+            background: linear-gradient(145deg, rgba(0, 10, 30, 0.8), rgba(10, 30, 60, 0.9));
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0, 120, 255, 0.2), 
+                        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(30, 140, 255, 0.3);
+            animation: categoryNavGlow 5s infinite alternate;
+        }
+        
+        .category-nav::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 170, 255, 0.1) 0%, transparent 70%);
+            transform: rotate(0deg);
+            z-index: 0;
+            opacity: 0.5;
+            pointer-events: none;
+            animation: categoryNavBg 15s linear infinite;
+        }
+        
+        .category-nav h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #ffffff;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.7);
+            position: relative;
+            display: inline-block;
+            z-index: 1;
+        }
+        
+        .category-nav h3::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(0, 120, 255, 0), rgba(0, 150, 255, 1), rgba(0, 120, 255, 0));
+            animation: categoryTitleLine 3s infinite;
+        }
+        
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .category-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(30, 140, 255, 0.4);
+            border-radius: 30px;
+            color: rgba(200, 230, 255, 0.9);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 10px rgba(0, 100, 255, 0.1);
+            text-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+        }
+        
+        .category-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s;
+        }
+        
+        .category-link:hover {
+            transform: translateY(-3px) scale(1.03);
+            background: rgba(0, 100, 255, 0.2);
+            border-color: rgba(30, 180, 255, 0.8);
+            color: #ffffff;
+            box-shadow: 
+                0 5px 15px rgba(0, 120, 255, 0.3),
+                0 0 5px rgba(0, 150, 255, 0.5);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+        }
+        
+        .category-link:hover::before {
+            left: 100%;
+            transition: all 0.8s;
+        }
+        
+        .category-link.active {
+            background: linear-gradient(135deg, rgba(0, 120, 255, 0.7), rgba(0, 180, 255, 0.5));
+            color: white;
+            border-color: rgba(100, 200, 255, 0.8);
+            box-shadow: 
+                0 5px 15px rgba(0, 150, 255, 0.4),
+                0 0 10px rgba(0, 200, 255, 0.3),
+                inset 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: activeGlow 2s infinite alternate;
+        }
+        
+        .category-link span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .category-link .count {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 0 6px;
+            margin-left: 5px;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+        
+        .category-link:hover .count {
+            background: rgba(0, 120, 255, 0.4);
+            box-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
+        }
+        
+        /* 当前分类标题科技风格 */
+        .current-category {
+            font-size: 16px;
+            color: #a0c8ff;
+            margin-bottom: 25px;
+            padding: 10px 15px;
+            background: rgba(0, 20, 50, 0.3);
+            border-left: 3px solid #0090ff;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 100, 255, 0.1);
+            animation: currentCategoryPulse 3s infinite alternate;
+        }
+        
+        .current-category span {
+            font-weight: bold;
+            color: #00b2ff;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+            animation: categoryNameGlow 2s infinite alternate;
+        }
+        
+        /* 科幻小游戏区域 */
+        .sci-fi-game-container {
+            position: relative;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(30, 140, 255, 0.5);
+            height: 300px;
+            background: linear-gradient(145deg, rgba(0, 10, 20, 0.8), rgba(5, 20, 50, 0.9));
+        }
+        
+        .game-title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(200, 230, 255, 0.9);
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(0, 150, 255, 0.7);
+            z-index: 10;
+            background: rgba(0, 20, 40, 0.5);
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(30, 140, 255, 0.4);
+            pointer-events: none;
+        }
+        
+        .game-subtitle {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(150, 200, 255, 0.7);
+            font-size: 14px;
+            text-shadow: 0 0 8px rgba(0, 120, 255, 0.5);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.8;
+            text-align: center;
+            width: 80%;
+        }
+        
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .game-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+        
+        .game-btn {
+            background: rgba(0, 80, 200, 0.3);
+            border: 1px solid rgba(30, 140, 255, 0.5);
+            color: rgba(200, 230, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+        }
+        
+        .game-btn:hover {
+            background: rgba(0, 100, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .game-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .game-stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: rgba(200, 230, 255, 0.9);
+            font-size: 14px;
+            text-shadow: 0 0 8px rgba(0, 120, 255, 0.5);
+            z-index: 10;
+            background: rgba(0, 20, 40, 0.5);
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(30, 140, 255, 0.4);
+        }
+        
+        /* 添加动画效果 */
+        @keyframes categoryNavGlow {
+            0% { box-shadow: 0 5px 20px rgba(0, 120, 255, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1); }
+            100% { box-shadow: 0 5px 30px rgba(0, 150, 255, 0.4), inset 0 1px 5px rgba(255, 255, 255, 0.2); }
+        }
+        
+        @keyframes categoryNavBg {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes categoryTitleLine {
+            0% { background-position: -100% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        @keyframes activeGlow {
+            0% { box-shadow: 0 5px 15px rgba(0, 150, 255, 0.4), 0 0 10px rgba(0, 200, 255, 0.3), inset 0 0 5px rgba(255, 255, 255, 0.5); }
+            100% { box-shadow: 0 5px 25px rgba(0, 180, 255, 0.6), 0 0 15px rgba(0, 230, 255, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.7); }
+        }
+        
+        @keyframes currentCategoryPulse {
+            0% { background: rgba(0, 20, 50, 0.3); }
+            100% { background: rgba(0, 30, 70, 0.4); }
+        }
+        
+        @keyframes categoryNameGlow {
+            0% { text-shadow: 0 0 10px rgba(0, 150, 255, 0.5); color: #00b2ff; }
+            100% { text-shadow: 0 0 20px rgba(0, 200, 255, 0.8); color: #40d0ff; }
+        }
+        
+        /* 保留原有的其他样式 */
+        /* 文档卡片中分类标签样式 */
+        .document-category {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #2196F3;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        /* 文档卡片图片样式 */
+        .document-image {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid rgba(30, 140, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 120, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <h1>文档管理系统</h1>
+            <nav>
+                <ul>
+                    <li><a href="/" class="active">主页</a></li>
+                    <li><a href="/login" th:if="${#authorization.expression('!isAuthenticated()')}">登录</a></li>
+                    <li><a href="/register" th:if="${#authorization.expression('!isAuthenticated()')}">注册</a></li>
+                    <li><a href="/dashboard" th:if="${#authorization.expression('isAuthenticated()')}">个人中心</a></li>
+                    <li><a href="/logout" th:if="${#authorization.expression('isAuthenticated()')}">退出</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="welcome-section">
+            <h2>欢迎使用文档管理系统</h2>
+            <p>浏览我们的文档库，获取有价值的信息。</p>
+        </section>
+        
+        <!-- 分类导航 -->
+        <section class="category-nav">
+            <h3>文档分类</h3>
+            <div class="category-list">
+                <a href="/" class="category-link" th:classappend="${selectedCategory == null ? 'active' : ''}">全部文档</a>
+                <a th:each="category : ${categories}" 
+                   th:href="@{/(categoryId=${category.id})}" 
+                   class="category-link"
+                   th:classappend="${selectedCategory != null && selectedCategory.id == category.id ? 'active' : ''}">
+                    <span th:text="${category.name}">分类名称</span>
+                    <span th:text="${'(' + category.documents.size() + ')'}" class="count"></span>
+                </a>
+            </div>
+        </section>
+        
+        <!-- 当前分类提示 -->
+        <div class="current-category" th:if="${selectedCategory != null}">
+            当前分类: <span th:text="${selectedCategory.name}">分类名称</span>
+        </div>
+
+        <section class="documents-section">
+            <h2>文档列表</h2>
+            <div class="documents-grid">
+                <div th:if="${documents.empty}" class="no-documents">
+                    <p th:if="${selectedCategory != null}">该分类下暂无文档</p>
+                    <p th:unless="${selectedCategory != null}">暂无文档</p>
+                </div>
+                <div th:each="doc : ${documents}" class="document-card">
+                    <h3 th:text="${doc.title}">文档标题</h3>
+                    <div class="document-meta">
+                        <span th:if="${doc.category != null}" class="document-category" th:text="${doc.category.name}">分类</span>
+                        <span th:text="${#temporals.format(doc.createdAt, 'yyyy-MM-dd HH:mm')}">发布时间</span>
+                    </div>
+                    <p th:text="${#strings.abbreviate(doc.content, 150)}">文档内容...</p>
+                    <img th:if="${doc.imagePath != null}" th:src="${doc.imagePath}" alt="文档图片" class="document-image">
+                    <a th:href="@{'/documents/' + ${doc.id}}" class="btn btn-primary">阅读全文</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 科幻小游戏 -->
+        <div class="sci-fi-game-container">
+            <div class="game-title">数据流交互器</div>
+            <div class="game-subtitle">移动鼠标与粒子交互，点击创建新的引力源</div>
+            <canvas id="particleCanvas"></canvas>
+            <div class="game-controls">
+                <button class="game-btn" id="resetBtn">重置</button>
+                <button class="game-btn" id="colorModeBtn">变换模式</button>
+                <button class="game-btn" id="gravityBtn">切换引力</button>
+            </div>
+            <div class="game-stats">
+                <span id="particleCount">粒子数: 0</span> | 
+                <span id="fpsCounter">FPS: 0</span>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 文档管理系统. 保留所有权利.</p>
+        </div>
+    </footer>
+
+    <script src="/js/script.js"></script>
+    
+    <!-- 粒子系统小游戏脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            const particleCountElement = document.getElementById('particleCount');
+            const fpsCounterElement = document.getElementById('fpsCounter');
+            const resetBtn = document.getElementById('resetBtn');
+            const colorModeBtn = document.getElementById('colorModeBtn');
+            const gravityBtn = document.getElementById('gravityBtn');
+            
+            // 设置画布大小
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 创建粒子系统
+            let particles = [];
+            let attractors = [];
+            let maxParticles = 150;
+            let colorMode = 0;  // 0: 蓝色系, 1: 多彩, 2: 科幻绿色
+            let useGravity = true;
+            let lastTime = 0;
+            let frameCount = 0;
+            let lastFpsUpdate = 0;
+            let currentFps = 0;
+            
+            // 颜色模式
+            const colorSchemes = [
+                // 蓝色系
+                {
+                    getColor: (velocity) => {
+                        const speed = Math.min(10, Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y));
+                        const hue = 210; // 蓝色
+                        const saturation = Math.min(100, 50 + speed * 5);
+                        const lightness = Math.min(90, 40 + speed * 5);
+                        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    },
+                    background: 'rgba(0, 10, 20, 0.2)'
+                },
+                // 多彩
+                {
+                    getColor: (velocity) => {
+                        const speed = Math.min(10, Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y));
+                        const hue = (Math.atan2(velocity.y, velocity.x) * 180 / Math.PI + 360) % 360;
+                        const saturation = Math.min(100, 70 + speed * 3);
+                        const lightness = Math.min(70, 40 + speed * 3);
+                        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    },
+                    background: 'rgba(5, 5, 15, 0.2)'
+                },
+                // 科幻绿色
+                {
+                    getColor: (velocity) => {
+                        const speed = Math.min(10, Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y));
+                        const hue = 120; // 绿色
+                        const saturation = Math.min(100, 50 + speed * 5);
+                        const lightness = Math.min(70, 30 + speed * 4);
+                        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    },
+                    background: 'rgba(0, 20, 10, 0.2)'
+                }
+            ];
+            
+            class Particle {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                    this.size = Math.random() * 3 + 1;
+                    this.vx = (Math.random() - 0.5) * 2;
+                    this.vy = (Math.random() - 0.5) * 2;
+                    this.ax = 0;
+                    this.ay = 0;
+                    this.life = Math.random() * 0.5 + 0.5; // 生命值 0-1
+                    this.decay = Math.random() * 0.01 + 0.003; // 每帧减少的生命值
+                }
+                
+                update() {
+                    // 更新加速度
+                    this.ax = 0;
+                    this.ay = 0;
+                    
+                    // 应用引力吸引
+                    if (useGravity) {
+                        for (const attractor of attractors) {
+                            const dx = attractor.x - this.x;
+                            const dy = attractor.y - this.y;
+                            const distSq = dx * dx + dy * dy;
+                            const dist = Math.sqrt(distSq);
+                            
+                            if (dist > 5) {
+                                const force = attractor.strength / distSq;
+                                this.ax += dx / dist * force;
+                                this.ay += dy / dist * force;
+                            }
+                        }
+                    }
+                    
+                    // 添加一点随机运动
+                    this.ax += (Math.random() - 0.5) * 0.05;
+                    this.ay += (Math.random() - 0.5) * 0.05;
+                    
+                    // 更新速度
+                    this.vx += this.ax;
+                    this.vy += this.ay;
+                    
+                    // 限制最大速度
+                    const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                    if (speed > 5) {
+                        this.vx = (this.vx / speed) * 5;
+                        this.vy = (this.vy / speed) * 5;
+                    }
+                    
+                    // 更新位置
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // 边界检查 - 弹回
+                    if (this.x < 0 || this.x > canvas.width) {
+                        this.vx *= -0.8;
+                        this.x = Math.max(0, Math.min(canvas.width, this.x));
+                    }
+                    if (this.y < 0 || this.y > canvas.height) {
+                        this.vy *= -0.8;
+                        this.y = Math.max(0, Math.min(canvas.height, this.y));
+                    }
+                    
+                    // 减少生命值
+                    this.life -= this.decay;
+                    
+                    // 更新大小
+                    this.size = Math.max(0.5, this.life * 4);
+                }
+                
+                draw() {
+                    const alpha = Math.min(1, this.life * 2);
+                    ctx.globalAlpha = alpha;
+                    
+                    // 根据颜色模式获取颜色
+                    ctx.fillStyle = colorSchemes[colorMode].getColor({x: this.vx, y: this.vy});
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 画速度向量
+                    if (this.size > 2) {
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(this.x + this.vx * 3, this.y + this.vy * 3);
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                    
+                    ctx.globalAlpha = 1;
+                }
+                
+                isDead() {
+                    return this.life <= 0;
+                }
+            }
+            
+            class Attractor {
+                constructor(x, y, strength = 0.5) {
+                    this.x = x;
+                    this.y = y;
+                    this.strength = strength;
+                    this.radius = 20;
+                    this.pulseAngle = 0;
+                }
+                
+                update() {
+                    this.pulseAngle += 0.05;
+                    this.radius = 15 + Math.sin(this.pulseAngle) * 5;
+                }
+                
+                draw() {
+                    // 内部圆
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                    gradient.addColorStop(0, 'rgba(0, 200, 255, 0.8)');
+                    gradient.addColorStop(1, 'rgba(0, 100, 255, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    
+                    // 外部光环
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 1.5, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(0, 150, 255, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // 脉冲环
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * (2 + Math.sin(this.pulseAngle) * 0.5), 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(0, 100, 255, 0.1)';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+            
+            // 初始化粒子
+            function initParticles() {
+                particles = [];
+                for (let i = 0; i < maxParticles; i++) {
+                    particles.push(new Particle(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height
+                    ));
+                }
+                
+                // 添加一个初始引力源
+                attractors = [];
+                attractors.push(new Attractor(canvas.width/2, canvas.height/2, 1));
+            }
+            
+            // 绘制帧率信息
+            function updateStats() {
+                particleCountElement.textContent = `粒子数: ${particles.length}`;
+                fpsCounterElement.textContent = `FPS: ${currentFps}`;
+            }
+            
+            // 鼠标交互
+            let mouseX = 0, mouseY = 0;
+            
+            canvas.addEventListener('mousemove', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+                
+                // 在鼠标位置生成新粒子
+                if (Math.random() < 0.3 && particles.length < maxParticles) {
+                    particles.push(new Particle(
+                        mouseX + (Math.random() - 0.5) * 20,
+                        mouseY + (Math.random() - 0.5) * 20
+                    ));
+                }
+            });
+            
+            canvas.addEventListener('click', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 添加新的引力源
+                if (attractors.length < 5) {
+                    attractors.push(new Attractor(x, y, 0.8));
+                } else {
+                    // 替换最旧的引力源
+                    attractors.shift();
+                    attractors.push(new Attractor(x, y, 0.8));
+                }
+            });
+            
+            // 按钮事件
+            resetBtn.addEventListener('click', function() {
+                initParticles();
+            });
+            
+            colorModeBtn.addEventListener('click', function() {
+                colorMode = (colorMode + 1) % colorSchemes.length;
+            });
+            
+            gravityBtn.addEventListener('click', function() {
+                useGravity = !useGravity;
+                this.textContent = useGravity ? "关闭引力" : "开启引力";
+            });
+            
+            // 动画循环
+            function animate(timestamp) {
+                // 计算帧率
+                if (!lastTime) lastTime = timestamp;
+                const deltaTime = timestamp - lastTime;
+                lastTime = timestamp;
+                
+                frameCount++;
+                if (timestamp - lastFpsUpdate > 1000) {
+                    currentFps = Math.round(frameCount * 1000 / (timestamp - lastFpsUpdate));
+                    frameCount = 0;
+                    lastFpsUpdate = timestamp;
+                    updateStats();
+                }
+                
+                // 清空画布
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制背景
+                ctx.fillStyle = colorSchemes[colorMode].background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 更新和绘制粒子
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw();
+                    
+                    // 删除死亡粒子
+                    if (particles[i].isDead()) {
+                        particles.splice(i, 1);
+                    }
+                }
+                
+                // 更新和绘制引力源
+                for (const attractor of attractors) {
+                    attractor.update();
+                    attractor.draw();
+                }
+                
+                // 添加新粒子
+                if (particles.length < maxParticles && Math.random() < 0.1) {
+                    particles.push(new Particle(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height
+                    ));
+                }
+                
+                // 更新统计信息
+                if (frameCount % 30 === 0) {
+                    updateStats();
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // 初始化并开始动画
+            initParticles();
+            animate(0);
+        });
+    </script>
+</body>
+</html> 

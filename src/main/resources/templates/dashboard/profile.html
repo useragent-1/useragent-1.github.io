@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息 - 控制面板</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .profile-form {
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .profile-image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            padding: 3px;
+        }
+        .profile-image-upload {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>控制面板</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">主页</a></li>
+                <li class="active"><a href="/dashboard/profile">个人信息</a></li>
+                <li><a href="/dashboard/change-password">修改密码</a></li>
+                <li><a href="/dashboard/documents">文档管理</a></li>
+                <li><a href="/" target="_blank">访问首页</a></li>
+                <li><a href="/logout">退出登录</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1>个人信息</h1>
+                </div>
+            </div>
+            
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            
+            <form action="/dashboard/profile" method="post" enctype="multipart/form-data" class="profile-form">
+                <div class="profile-image-container">
+                    <img th:src="${user.profileImage != null ? user.profileImage : '/images/default-avatar.png'}" 
+                         alt="个人头像" class="profile-image">
+                    <div class="profile-image-upload">
+                        <input type="file" id="profileImageFile" name="profileImageFile" accept="image/*">
+                        <small>选择一张新头像（可选）</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" th:value="${user.username}" class="form-control" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fullName">姓名</label>
+                    <input type="text" id="fullName" name="fullName" th:value="${user.fullName}" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" th:value="${user.email}" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">保存更改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/js/script.js"></script>
+</body>
+</html> 

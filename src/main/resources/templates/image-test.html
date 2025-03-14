@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片上传和显示测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .image-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 10px;
+            background-color: white;
+        }
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .image-path {
+            word-break: break-all;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .config-info {
+            background-color: #e2e3e5;
+            color: #383d41;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片上传和显示测试</h1>
+        
+        <div class="section">
+            <h2>配置信息</h2>
+            <div class="config-info">
+                <p>上传目录: <span th:text="${uploadDir}">上传目录路径</span></p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>上传图片</h2>
+            
+            <div th:if="${message}" class="message" th:classappend="${message.startsWith('上传成功') ? 'success' : 'error'}">
+                <p th:text="${message}">消息内容</p>
+            </div>
+            
+            <div th:if="${imagePath}" class="section">
+                <h3>上传的图片</h3>
+                <div class="image-item">
+                    <img th:src="${imagePath}" alt="上传的图片">
+                    <div class="image-path" th:text="${imagePath}">图片路径</div>
+                </div>
+            </div>
+            
+            <form class="upload-form" th:action="@{/test-image/upload}" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="file">选择图片文件:</label>
+                    <input type="file" id="file" name="file" accept="image/*" required>
+                </div>
+                <button type="submit">上传图片</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>上传目录中的所有图片</h2>
+            
+            <div th:if="${images.empty}">
+                <p>上传目录中没有图片</p>
+            </div>
+            
+            <div th:unless="${images.empty}" class="image-grid">
+                <div th:each="img : ${images}" class="image-item">
+                    <img th:src="${img}" alt="图片">
+                    <div class="image-path" th:text="${img}">图片路径</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

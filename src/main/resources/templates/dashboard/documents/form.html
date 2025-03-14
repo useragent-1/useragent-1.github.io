@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${document.id != null ? '编辑文档' : '创建文档'} + ' - 控制面板'">文档管理 - 控制面板</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .form-document {
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-check {
+            margin-top: 20px;
+        }
+        textarea.form-control {
+            min-height: 300px;
+            resize: vertical;
+        }
+        
+        /* 科技风格下拉框 */
+        select.form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: linear-gradient(145deg, rgba(10, 20, 40, 0.6), rgba(20, 40, 70, 0.7));
+            border: 1px solid rgba(30, 140, 255, 0.4);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0, 100, 255, 0.1), 
+                        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            position: relative;
+            cursor: pointer;
+            background-image: 
+                linear-gradient(145deg, rgba(10, 20, 40, 0.6), rgba(20, 40, 70, 0.7)),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2340a9ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: auto, 16px;
+            padding-right: 40px;
+        }
+        
+        select.form-control:focus {
+            outline: none;
+            border-color: rgba(0, 170, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.3),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+        }
+        
+        select.form-control:hover {
+            border-color: rgba(30, 180, 255, 0.8);
+            box-shadow: 0 5px 15px rgba(0, 120, 255, 0.2),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+        }
+        
+        select.form-control option {
+            background-color: rgba(10, 30, 60, 0.95);
+            color: rgba(200, 230, 255, 0.9);
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>控制面板</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">主页</a></li>
+                <li><a href="/dashboard/profile">个人信息</a></li>
+                <li><a href="/dashboard/change-password">修改密码</a></li>
+                <li class="active"><a href="/dashboard/documents">文档管理</a></li>
+                <li><a href="/dashboard/categories">分类管理</a></li>
+                <li><a href="/danmaku">弹幕墙</a></li>
+                <li><a href="/" target="_blank">访问首页</a></li>
+                <li><a href="/logout">退出登录</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1 th:text="${document.id != null ? '编辑文档' : '创建文档'}">文档表单</h1>
+                </div>
+                <div>
+                    <a href="/dashboard/documents" class="btn btn-secondary">返回文档列表</a>
+                </div>
+            </div>
+            
+            <form th:action="${document.id != null ? '/dashboard/documents/edit/' + document.id : '/dashboard/documents/create'}" 
+                  method="post" 
+                  th:object="${document}" 
+                  class="form-document"
+                  enctype="multipart/form-data">
+                  
+                <div class="form-group">
+                    <label for="title">标题</label>
+                    <input type="text" id="title" name="title" th:field="*{title}" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryId">分类</label>
+                    <select id="categoryId" name="categoryId" class="form-control">
+                        <option value="">-- 无分类 --</option>
+                        <option th:each="cat : ${categories}" 
+                                th:value="${cat.id}" 
+                                th:text="${cat.name}"
+                                th:selected="${document.category != null && document.category.id == cat.id}">
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">内容</label>
+                    <textarea id="content" name="content" th:field="*{content}" class="form-control" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="imageFile">文档图片</label>
+                    <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*">
+                    <small class="form-text text-muted">支持的格式: JPG, JPEG, PNG, GIF, BMP</small>
+                    
+                    <!-- 如果已有图片，显示预览 -->
+                    <div th:if="${document.imagePath != null}" class="mt-2">
+                        <p>当前图片:</p>
+                        <img th:src="${document.imagePath}" alt="文档图片" style="max-width: 300px; max-height: 200px;">
+                        <input type="hidden" name="imagePath" th:value="${document.imagePath}">
+                    </div>
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="featured" name="featured" th:field="*{featured}" class="form-check-input">
+                    <label for="featured" class="form-check-label">在首页显示</label>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <a href="/dashboard/documents" class="btn btn-secondary">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="/js/script.js"></script>
+</body>
+</html> 

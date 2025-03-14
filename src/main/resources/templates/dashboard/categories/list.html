@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分类管理 - 文档管理系统</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>控制面板</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">主页</a></li>
+                <li><a href="/dashboard/profile">个人信息</a></li>
+                <li><a href="/dashboard/change-password">修改密码</a></li>
+                <li><a href="/dashboard/documents">文档管理</a></li>
+                <li class="active"><a href="/dashboard/categories">分类管理</a></li>
+                <li><a href="/danmaku">弹幕墙</a></li>
+                <li><a href="/" target="_blank">访问首页</a></li>
+                <li><a href="/logout">退出登录</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1>分类管理</h1>
+                </div>
+            </div>
+            
+            <div class="alert alert-success" th:if="${successMessage}">
+                <p th:text="${successMessage}"></p>
+            </div>
+            
+            <div class="alert alert-danger" th:if="${errorMessage}">
+                <p th:text="${errorMessage}"></p>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>添加新分类</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/dashboard/categories/create}" method="post" th:object="${category}">
+                        <div class="form-group">
+                            <label for="name">分类名称</label>
+                            <input type="text" id="name" name="name" th:field="*{name}" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">分类描述</label>
+                            <textarea id="description" name="description" th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">添加分类</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h2>分类列表</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>描述</th>
+                                    <th>创建时间</th>
+                                    <th>文档数量</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="cat : ${categories}">
+                                    <td th:text="${cat.id}"></td>
+                                    <td th:text="${cat.name}"></td>
+                                    <td th:text="${cat.description}"></td>
+                                    <td th:text="${#temporals.format(cat.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                                    <td th:text="${cat.documents.size()}"></td>
+                                    <td>
+                                        <a th:href="@{/dashboard/categories/edit/{id}(id=${cat.id})}" class="btn btn-sm btn-primary">编辑</a>
+                                        <a th:href="@{/dashboard/categories/delete/{id}(id=${cat.id})}" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除这个分类吗？这将会移除所有关联的文档的分类。')">删除</a>
+                                        <a th:href="@{/dashboard/documents(categoryId=${cat.id})}" class="btn btn-sm btn-info">查看文档</a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${categories.empty}">
+                                    <td colspan="6" class="text-center">没有分类记录</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/script.js"></script>
+</body>
+</html> 
